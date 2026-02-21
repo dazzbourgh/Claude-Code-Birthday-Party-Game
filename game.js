@@ -1,13 +1,13 @@
 // Configuration
 const CONFIG = {
-    PLAYER_SPEED: 4,               // base speed
+    PLAYER_SPEED: 4 * 3,               // base speed
     BOOST_MULTIPLIER: 3,           // shift multiplier
     PLAYER_MASS: 5,                // simulated mass
     PUCK_MASS: 1,                  // simulated mass
     RINK_LINE_WIDTH: 4,            // thickness of the orange lines
     GOAL_WIDTH: 150,               // size of goals
     PLAYER_RADIUS: 25,             // size of player
-    PUCK_RADIUS: 10,               // size of puck
+    PUCK_RADIUS: 15,               // size of puck
     FPS: 60,                       // frames per second (logic)
     CORNER_RADIUS: 100,            // radius of rink corners
     FRICTION: 0.99,                // puck friction
@@ -19,6 +19,13 @@ const ctx = canvas.getContext('2d');
 
 canvas.width = 1000;
 canvas.height = 600;
+
+// Load images
+const imgP1 = new Image();
+imgP1.src = 'claude_orange.svg';
+
+const imgP2 = new Image();
+imgP2.src = 'claude_pink.svg';
 
 // Game State
 const state = {
@@ -75,6 +82,16 @@ function drawCircle(obj, color) {
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
     ctx.stroke();
+}
+
+function drawPlayer(obj, img, fallbackColor) {
+    if (img.complete && img.naturalWidth !== 0) {
+        // Draw the image centered around obj.x, obj.y
+        ctx.drawImage(img, obj.x - obj.radius, obj.y - obj.radius, obj.radius * 2, obj.radius * 2);
+    } else {
+        // Fallback if image not loaded yet
+        drawCircle(obj, fallbackColor);
+    }
 }
 
 function resolveCollision(c1, c2) {
@@ -303,8 +320,8 @@ function draw() {
     ctx.fillText(`${state.p1.score} - ${state.p2.score}`, canvas.width / 2, 55);
 
     // Draw players & puck
-    drawCircle(state.p1, '#00ff00'); // P1 Green
-    drawCircle(state.p2, '#ff0000'); // P2 Red
+    drawPlayer(state.p1, imgP1, '#00ff00'); // P1 (Orange Claude)
+    drawPlayer(state.p2, imgP2, '#ff0000'); // P2 (Pink Claude)
     drawCircle(state.puck, '#ffffff'); // Puck White
 }
 
