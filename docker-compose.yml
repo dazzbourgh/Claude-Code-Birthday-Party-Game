@@ -5,3 +5,9 @@ services:
     build: .
     restart: unless-stopped
     container_name: claude-party-game
+    networks:
+      - lab_network
+
+networks:
+  lab_network:
+    external: true
