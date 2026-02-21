@@ -1,3 +1,6 @@
 .git
 .dockerignore
 Dockerfile
+redeploy.sh
+README.md
+gameplay.webp
