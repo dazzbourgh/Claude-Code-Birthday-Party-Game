@@ -1,7 +1,9 @@
 // Configuration
 const CONFIG = {
     PLAYER_SPEED: 4 * 3,               // base speed
-    BOOST_MULTIPLIER: 2.2,           // shift multiplier
+    BOOST_MULTIPLIER: 2.2,             // shift multiplier
+    BOOST_DURATION: 200,               // ms duration of the dash
+    BOOST_COOLDOWN: 500,              // ms cooldown between dashes
     PLAYER_MASS: 5,                // simulated mass
     PUCK_MASS: 1,                  // simulated mass
     RINK_LINE_WIDTH: 4,            // thickness of the orange lines
@@ -29,8 +31,8 @@ imgP2.src = 'claude_pink.svg';
 
 // Game State
 const state = {
-    p1: { x: 200, y: 340, vx: 0, vy: 0, radius: CONFIG.PLAYER_RADIUS, mass: CONFIG.PLAYER_MASS, score: 0, lastDx: 1, lastDy: 0, boosting: false },
-    p2: { x: 800, y: 340, vx: 0, vy: 0, radius: CONFIG.PLAYER_RADIUS, mass: CONFIG.PLAYER_MASS, score: 0, lastDx: -1, lastDy: 0, boosting: false },
+    p1: { x: 200, y: 340, vx: 0, vy: 0, radius: CONFIG.PLAYER_RADIUS, mass: CONFIG.PLAYER_MASS, score: 0, lastDx: 1, lastDy: 0, boostActive: 0, boostCooldown: 0 },
+    p2: { x: 800, y: 340, vx: 0, vy: 0, radius: CONFIG.PLAYER_RADIUS, mass: CONFIG.PLAYER_MASS, score: 0, lastDx: -1, lastDy: 0, boostActive: 0, boostCooldown: 0 },
     puck: { x: 500, y: 340, vx: 0, vy: 0, radius: CONFIG.PUCK_RADIUS, mass: CONFIG.PUCK_MASS },
     keys: {}
 };
@@ -254,7 +256,7 @@ function update(dt) {
 
     // Player 1 Movement Input (WASD + Gamepad 0)
     let p1dx = 0, p1dy = 0;
-    let p1Boost = state.keys['ShiftLeft'];
+    let p1BoostRequested = state.keys['ShiftLeft'];
 
     if (state.keys['KeyW']) p1dy -= 1;
     if (state.keys['KeyS']) p1dy += 1;
@@ -264,7 +266,7 @@ function update(dt) {
     if (gp1) {
         if (Math.abs(gp1.axes[0]) > 0.1) p1dx += gp1.axes[0];
         if (Math.abs(gp1.axes[1]) > 0.1) p1dy += gp1.axes[1];
-        if (gp1.buttons[0]?.pressed || gp1.buttons[7]?.pressed) p1Boost = true; // A/Cross or Right Trigger
+        if (gp1.buttons[0]?.pressed || gp1.buttons[7]?.pressed) p1BoostRequested = true; // A/Cross or Right Trigger
     }
 
     if (p1dx !== 0 || p1dy !== 0) {
@@ -273,12 +275,21 @@ function update(dt) {
         state.p1.lastDx = p1dx; state.p1.lastDy = p1dy;
     }
 
+    // Process P1 Boost
+    if (state.p1.boostCooldown > 0) state.p1.boostCooldown -= dt;
+    if (state.p1.boostActive > 0) state.p1.boostActive -= dt;
+    if (p1BoostRequested && state.p1.boostCooldown <= 0) {
+        state.p1.boostActive = CONFIG.BOOST_DURATION;
+        state.p1.boostCooldown = CONFIG.BOOST_COOLDOWN;
+    }
+    let p1Boost = state.p1.boostActive > 0;
+
     let p1TargetVx = p1dx * CONFIG.PLAYER_SPEED * (p1Boost ? CONFIG.BOOST_MULTIPLIER : 1);
     let p1TargetVy = p1dy * CONFIG.PLAYER_SPEED * (p1Boost ? CONFIG.BOOST_MULTIPLIER : 1);
 
     // Player 2 Movement Input (O, K, L, ; + Gamepad 1)
     let p2dx = 0, p2dy = 0;
-    let p2Boost = state.keys['ShiftRight'];
+    let p2BoostRequested = state.keys['ShiftRight'];
 
     if (state.keys['KeyO']) p2dy -= 1;
     if (state.keys['KeyL']) p2dy += 1;
@@ -288,7 +299,7 @@ function update(dt) {
     if (gp2) {
         if (Math.abs(gp2.axes[0]) > 0.1) p2dx += gp2.axes[0];
         if (Math.abs(gp2.axes[1]) > 0.1) p2dy += gp2.axes[1];
-        if (gp2.buttons[0]?.pressed || gp2.buttons[7]?.pressed) p2Boost = true; // A/Cross or Right Trigger
+        if (gp2.buttons[0]?.pressed || gp2.buttons[7]?.pressed) p2BoostRequested = true; // A/Cross or Right Trigger
     }
 
     if (p2dx !== 0 || p2dy !== 0) {
@@ -296,6 +307,15 @@ function update(dt) {
         if (len > 1) { p2dx /= len; p2dy /= len; }
         state.p2.lastDx = p2dx; state.p2.lastDy = p2dy;
     }
+
+    // Process P2 Boost
+    if (state.p2.boostCooldown > 0) state.p2.boostCooldown -= dt;
+    if (state.p2.boostActive > 0) state.p2.boostActive -= dt;
+    if (p2BoostRequested && state.p2.boostCooldown <= 0) {
+        state.p2.boostActive = CONFIG.BOOST_DURATION;
+        state.p2.boostCooldown = CONFIG.BOOST_COOLDOWN;
+    }
+    let p2Boost = state.p2.boostActive > 0;
 
     let p2TargetVx = p2dx * CONFIG.PLAYER_SPEED * (p2Boost ? CONFIG.BOOST_MULTIPLIER : 1);
     let p2TargetVy = p2dy * CONFIG.PLAYER_SPEED * (p2Boost ? CONFIG.BOOST_MULTIPLIER : 1);
