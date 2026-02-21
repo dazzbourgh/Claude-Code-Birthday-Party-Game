@@ -11,14 +11,7 @@ A simple, fast-paced 1-on-1 2D hockey party game built directly for the browser!
 *(The players must bump the puck to score goals on the opposing sides of the ice rink!)*
 
 ## 🚀 Running the Game
-This game can be easily hosted using Docker Compose:
-
-```bash
-docker compose up -d
-```
-The game container joins a custom Docker network and serves the game over port `80`.
-
-Alternatively, just serve this directory locally:
+Serve this directory locally:
 ```bash
 python3 -m http.server 8080
 ```
