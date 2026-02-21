@@ -229,15 +229,22 @@ function collideWithWalls(obj) {
 }
 
 function scoreGoal(player) {
-    if (player === 1) state.p1.score++;
-    if (player === 2) state.p2.score++;
+    if (player === 1) {
+        state.p1.score++;
+        state.puck.x = 800 - CONFIG.PLAYER_RADIUS - CONFIG.PUCK_RADIUS - 20; // In front of P2
+    }
+    if (player === 2) {
+        state.p2.score++;
+        state.puck.x = 200 + CONFIG.PLAYER_RADIUS + CONFIG.PUCK_RADIUS + 20; // In front of P1
+    }
 
     state.p1.x = 200; state.p1.y = 340; state.p1.vx = 0; state.p1.vy = 0;
     state.p2.x = 800; state.p2.y = 340; state.p2.vx = 0; state.p2.vy = 0;
-    state.puck.x = 500; state.puck.y = 340; state.puck.vx = 0; state.puck.vy = 0;
+    state.puck.y = 340; state.puck.vx = 0; state.puck.vy = 0;
 }
 
 function update(dt) {
+    if (dt > 50) dt = 50; // Cap dt to avoid physics explosions on lag
     const timeScale = dt * 60 / 1000;
 
     // Player 1 Movement (WASD) Input
@@ -282,31 +289,37 @@ function update(dt) {
     state.puck.vx *= CONFIG.FRICTION;
     state.puck.vy *= CONFIG.FRICTION;
 
-    // Apply velocities
-    state.p1.x += state.p1.vx * timeScale;
-    state.p1.y += state.p1.vy * timeScale;
-    state.p2.x += state.p2.vx * timeScale;
-    state.p2.y += state.p2.vy * timeScale;
-    state.puck.x += state.puck.vx * timeScale;
-    state.puck.y += state.puck.vy * timeScale;
+    // Substep positional integration and collisions to prevent tunneling at high speeds
+    const SUBSTEPS = 5;
+    const subTimeScale = timeScale / SUBSTEPS;
 
-    // Collisions
-    resolveCollision(state.p1, state.p2);
-    resolveCollision(state.p1, state.puck);
-    resolveCollision(state.p2, state.puck);
+    for (let step = 0; step < SUBSTEPS; step++) {
+        // Apply velocities
+        state.p1.x += state.p1.vx * subTimeScale;
+        state.p1.y += state.p1.vy * subTimeScale;
+        state.p2.x += state.p2.vx * subTimeScale;
+        state.p2.y += state.p2.vy * subTimeScale;
+        state.puck.x += state.puck.vx * subTimeScale;
+        state.puck.y += state.puck.vy * subTimeScale;
 
-    collideWithWalls(state.p1);
-    collideWithWalls(state.p2);
-    collideWithWalls(state.puck);
+        // Collisions
+        resolveCollision(state.p1, state.p2);
+        resolveCollision(state.p1, state.puck);
+        resolveCollision(state.p2, state.puck);
 
-    // Apply center line constraints independently AFTER wall collisions
-    if (state.p1.x + state.p1.radius > canvas.width / 2) {
-        state.p1.x = canvas.width / 2 - state.p1.radius;
-        if (state.p1.vx > 0) state.p1.vx = -state.p1.vx;
-    }
-    if (state.p2.x - state.p2.radius < canvas.width / 2) {
-        state.p2.x = canvas.width / 2 + state.p2.radius;
-        if (state.p2.vx < 0) state.p2.vx = -state.p2.vx;
+        collideWithWalls(state.p1);
+        collideWithWalls(state.p2);
+        collideWithWalls(state.puck);
+
+        // Apply center line constraints independently AFTER wall collisions
+        if (state.p1.x + state.p1.radius > canvas.width / 2) {
+            state.p1.x = canvas.width / 2 - state.p1.radius;
+            if (state.p1.vx > 0) state.p1.vx = -state.p1.vx;
+        }
+        if (state.p2.x - state.p2.radius < canvas.width / 2) {
+            state.p2.x = canvas.width / 2 + state.p2.radius;
+            if (state.p2.vx < 0) state.p2.vx = -state.p2.vx;
+        }
     }
 }
 
