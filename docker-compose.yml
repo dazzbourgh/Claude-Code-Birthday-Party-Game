@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  claude-party-game:
+    build: .
+    restart: unless-stopped
+    container_name: claude-party-game
