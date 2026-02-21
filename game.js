@@ -210,12 +210,6 @@ function collideWithWalls(obj) {
             }
             hit = true; nx = -1; ny = 0; pen = (obj.x + obj.radius) - right;
         }
-        else if (obj === state.p1 && obj.x + obj.radius > canvas.width / 2) {
-            hit = true; nx = -1; ny = 0; pen = (obj.x + obj.radius) - canvas.width / 2;
-        }
-        else if (obj === state.p2 && obj.x - obj.radius < canvas.width / 2) {
-            hit = true; nx = 1; ny = 0; pen = canvas.width / 2 - (obj.x - obj.radius);
-        }
         else if (obj.y - obj.radius < top) { hit = true; nx = 0; ny = 1; pen = top - (obj.y - obj.radius); }
         else if (obj.y + obj.radius > bottom) { hit = true; nx = 0; ny = -1; pen = (obj.y + obj.radius) - bottom; }
     }
@@ -304,6 +298,16 @@ function update(dt) {
     collideWithWalls(state.p1);
     collideWithWalls(state.p2);
     collideWithWalls(state.puck);
+
+    // Apply center line constraints independently AFTER wall collisions
+    if (state.p1.x + state.p1.radius > canvas.width / 2) {
+        state.p1.x = canvas.width / 2 - state.p1.radius;
+        if (state.p1.vx > 0) state.p1.vx = -state.p1.vx;
+    }
+    if (state.p2.x - state.p2.radius < canvas.width / 2) {
+        state.p2.x = canvas.width / 2 + state.p2.radius;
+        if (state.p2.vx < 0) state.p2.vx = -state.p2.vx;
+    }
 }
 
 function draw() {
