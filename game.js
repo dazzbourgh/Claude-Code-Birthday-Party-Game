@@ -8,7 +8,7 @@ const CONFIG = {
     GOAL_WIDTH: 150,               // size of goals
     PLAYER_RADIUS: 25,             // size of player
     PUCK_RADIUS: 15,               // size of puck
-    FPS: 60,                       // frames per second (logic)
+    FPS: 240,                       // frames per second (logic)
     CORNER_RADIUS: 100,            // radius of rink corners
     FRICTION: 0.99,                // puck friction
     PLAYER_LERP: 0.2               // how fast players change direction/recover
