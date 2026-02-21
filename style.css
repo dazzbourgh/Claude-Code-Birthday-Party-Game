@@ -1,0 +1,27 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    /* Black background like Claude CLI */
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Courier New', Courier, monospace;
+    /* Pixel art / CLI style font */
+}
+
+#game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+canvas {
+    background-color: #000;
+    /* You mentioned 'orange lines for rink' which we will draw in canvas */
+    border: none;
+    image-rendering: pixelated;
+    /* Give a crisp pixel look */
+}
