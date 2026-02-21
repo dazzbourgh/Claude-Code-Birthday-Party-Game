@@ -1,7 +1,7 @@
 // Configuration
 const CONFIG = {
     PLAYER_SPEED: 4 * 3,               // base speed
-    BOOST_MULTIPLIER: 3,           // shift multiplier
+    BOOST_MULTIPLIER: 2.2,           // shift multiplier
     PLAYER_MASS: 5,                // simulated mass
     PUCK_MASS: 1,                  // simulated mass
     RINK_LINE_WIDTH: 4,            // thickness of the orange lines
