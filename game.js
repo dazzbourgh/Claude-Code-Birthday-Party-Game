@@ -247,37 +247,58 @@ function update(dt) {
     if (dt > 50) dt = 50; // Cap dt to avoid physics explosions on lag
     const timeScale = dt * 60 / 1000;
 
-    // Player 1 Movement (WASD) Input
+    // Fetch gamepads
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const gp1 = gamepads[0];
+    const gp2 = gamepads[1];
+
+    // Player 1 Movement Input (WASD + Gamepad 0)
     let p1dx = 0, p1dy = 0;
+    let p1Boost = state.keys['ShiftLeft'];
+
     if (state.keys['KeyW']) p1dy -= 1;
     if (state.keys['KeyS']) p1dy += 1;
     if (state.keys['KeyA']) p1dx -= 1;
     if (state.keys['KeyD']) p1dx += 1;
 
+    if (gp1) {
+        if (Math.abs(gp1.axes[0]) > 0.1) p1dx += gp1.axes[0];
+        if (Math.abs(gp1.axes[1]) > 0.1) p1dy += gp1.axes[1];
+        if (gp1.buttons[0]?.pressed || gp1.buttons[7]?.pressed) p1Boost = true; // A/Cross or Right Trigger
+    }
+
     if (p1dx !== 0 || p1dy !== 0) {
         const len = Math.sqrt(p1dx * p1dx + p1dy * p1dy);
-        p1dx /= len; p1dy /= len;
+        if (len > 1) { p1dx /= len; p1dy /= len; }
         state.p1.lastDx = p1dx; state.p1.lastDy = p1dy;
     }
 
-    let p1TargetVx = p1dx * CONFIG.PLAYER_SPEED * (state.keys['ShiftLeft'] ? CONFIG.BOOST_MULTIPLIER : 1);
-    let p1TargetVy = p1dy * CONFIG.PLAYER_SPEED * (state.keys['ShiftLeft'] ? CONFIG.BOOST_MULTIPLIER : 1);
+    let p1TargetVx = p1dx * CONFIG.PLAYER_SPEED * (p1Boost ? CONFIG.BOOST_MULTIPLIER : 1);
+    let p1TargetVy = p1dy * CONFIG.PLAYER_SPEED * (p1Boost ? CONFIG.BOOST_MULTIPLIER : 1);
 
-    // Player 2 Movement (O, K, L, ;) Input
+    // Player 2 Movement Input (O, K, L, ; + Gamepad 1)
     let p2dx = 0, p2dy = 0;
+    let p2Boost = state.keys['ShiftRight'];
+
     if (state.keys['KeyO']) p2dy -= 1;
     if (state.keys['KeyL']) p2dy += 1;
     if (state.keys['KeyK']) p2dx -= 1;
     if (state.keys['Semicolon']) p2dx += 1;
 
+    if (gp2) {
+        if (Math.abs(gp2.axes[0]) > 0.1) p2dx += gp2.axes[0];
+        if (Math.abs(gp2.axes[1]) > 0.1) p2dy += gp2.axes[1];
+        if (gp2.buttons[0]?.pressed || gp2.buttons[7]?.pressed) p2Boost = true; // A/Cross or Right Trigger
+    }
+
     if (p2dx !== 0 || p2dy !== 0) {
         const len = Math.sqrt(p2dx * p2dx + p2dy * p2dy);
-        p2dx /= len; p2dy /= len;
+        if (len > 1) { p2dx /= len; p2dy /= len; }
         state.p2.lastDx = p2dx; state.p2.lastDy = p2dy;
     }
 
-    let p2TargetVx = p2dx * CONFIG.PLAYER_SPEED * (state.keys['ShiftRight'] ? CONFIG.BOOST_MULTIPLIER : 1);
-    let p2TargetVy = p2dy * CONFIG.PLAYER_SPEED * (state.keys['ShiftRight'] ? CONFIG.BOOST_MULTIPLIER : 1);
+    let p2TargetVx = p2dx * CONFIG.PLAYER_SPEED * (p2Boost ? CONFIG.BOOST_MULTIPLIER : 1);
+    let p2TargetVy = p2dy * CONFIG.PLAYER_SPEED * (p2Boost ? CONFIG.BOOST_MULTIPLIER : 1);
 
     // Apply Lerp to velocities so physics impulses can happen
     state.p1.vx += (p1TargetVx - state.p1.vx) * CONFIG.PLAYER_LERP;
