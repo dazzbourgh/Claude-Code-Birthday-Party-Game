@@ -31,6 +31,7 @@ imgP2.src = 'claude_pink.svg';
 
 // Game State
 const state = {
+    particles: [],
     p1: { x: 200, y: 340, vx: 0, vy: 0, radius: CONFIG.PLAYER_RADIUS, mass: CONFIG.PLAYER_MASS, score: 0, lastDx: 1, lastDy: 0, boostActive: 0, boostCooldown: 0 },
     p2: { x: 800, y: 340, vx: 0, vy: 0, radius: CONFIG.PLAYER_RADIUS, mass: CONFIG.PLAYER_MASS, score: 0, lastDx: -1, lastDy: 0, boostActive: 0, boostCooldown: 0 },
     puck: { x: 500, y: 340, vx: 0, vy: 0, radius: CONFIG.PUCK_RADIUS, mass: CONFIG.PUCK_MASS },
@@ -362,6 +363,38 @@ function update(dt) {
             if (state.p2.vx < 0) state.p2.vx = -state.p2.vx;
         }
     }
+
+    // Update Particles
+    for (let i = state.particles.length - 1; i >= 0; i--) {
+        let p = state.particles[i];
+        p.life -= dt;
+        p.radius *= 0.9; // shrink
+        if (p.life <= 0) {
+            state.particles.splice(i, 1);
+        }
+    }
+
+    // Spawn new boost particles
+    if (p1Boost) {
+        state.particles.push({
+            x: state.p1.x - state.p1.lastDx * state.p1.radius * 0.8,
+            y: state.p1.y - state.p1.lastDy * state.p1.radius * 0.8,
+            radius: state.p1.radius * 0.6,
+            color: '#ff8800',
+            life: 300,
+            maxLife: 300
+        });
+    }
+    if (p2Boost) {
+        state.particles.push({
+            x: state.p2.x - state.p2.lastDx * state.p2.radius * 0.8,
+            y: state.p2.y - state.p2.lastDy * state.p2.radius * 0.8,
+            radius: state.p2.radius * 0.6,
+            color: '#ff00aa', // Pinkish
+            life: 300,
+            maxLife: 300
+        });
+    }
 }
 
 function draw() {
@@ -376,6 +409,16 @@ function draw() {
     ctx.font = 'bold 48px monospace';
     ctx.textAlign = 'center';
     ctx.fillText(`${state.p1.score} - ${state.p2.score}`, canvas.width / 2, 55);
+
+    // Draw Particles
+    state.particles.forEach(p => {
+        ctx.globalAlpha = p.life / p.maxLife * 0.7; // Fade out, max opacity 0.7
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(0, p.radius), 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.globalAlpha = 1.0; // Reset alpha
 
     // Draw players & puck
     drawPlayer(state.p1, imgP1, '#00ff00'); // P1 (Orange Claude)
